@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitCyber | Smart Group Expense Splitter</title>
+  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- RemixIcons for crisp vector icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet"/>
+  <!-- Custom Cyber-Glass CSS -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <!-- Ambient background glow Orbs -->
+  <div class="ambient-glow orb-1"></div>
+  <div class="ambient-glow orb-2"></div>
+  <div class="ambient-glow orb-3"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar glass-panel">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="ri-pulse-fill"></i>
+        </div>
+        <div class="brand-text">
+          <h2>SPLIT<span>CYBER</span></h2>
+          <span class="version-tag">v1.0 • MySQL</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span class="section-title">YOUR GROUPS</span>
+          <button class="icon-btn" id="btn-open-create-group" title="Create New Group">
+            <i class="ri-add-line"></i>
+          </button>
+        </div>
+        <div class="groups-list" id="groups-container">
+          <!-- Dynamic group items will load here -->
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-header">
+          <span class="section-title">ALL USERS</span>
+          <button class="icon-btn" id="btn-open-create-user" title="Register User">
+            <i class="ri-user-add-line"></i>
+          </button>
+        </div>
+        <div class="users-list" id="users-container">
+          <!-- Dynamic user items will load here -->
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="pulse-dot"></span>
+          <span id="backend-status-text">Backend Connected</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <!-- Top Navigation Header -->
+      <header class="top-header glass-panel">
+        <div class="header-group-info">
+          <div class="group-badge" id="current-group-badge">
+            <i class="ri-team-line"></i>
+          </div>
+          <div>
+            <h1 id="current-group-name">Select or Create a Group</h1>
+            <p id="current-group-desc" class="subtext">Manage shared expenses & instant debt settlement</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="btn-add-member" disabled>
+            <i class="ri-user-follow-line"></i> Add Member
+          </button>
+          <button class="btn btn-primary glow-button" id="btn-open-add-expense" disabled>
+            <i class="ri-add-circle-line"></i> Add Expense
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard View Containers -->
+      <div class="dashboard-grid" id="main-dashboard" style="display: none;">
+        
+        <!-- Summary Metric Cards -->
+        <section class="metrics-row">
+          <div class="metric-card glass-card">
+            <div class="metric-icon purple">
+              <i class="ri-coins-line"></i>
+            </div>
+            <div class="metric-info">
+              <span class="label">Total Group Spend</span>
+              <h3 id="metric-total-spend">$0.00</h3>
+            </div>
+          </div>
+
+          <div class="metric-card glass-card">
+            <div class="metric-icon cyan">
+              <i class="ri-group-line"></i>
+            </div>
+            <div class="metric-info">
+              <span class="label">Active Members</span>
+              <h3 id="metric-members-count">0</h3>
+            </div>
+          </div>
+
+          <div class="metric-card glass-card">
+            <div class="metric-icon emerald">
+              <i class="ri-repeat-line"></i>
+            </div>
+            <div class="metric-info">
+              <span class="label">Simplified IOUs</span>
+              <h3 id="metric-transfers-count">0 Transfers</h3>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dynamic Tabs -->
+        <div class="tab-navigation">
+          <button class="tab-btn active" data-tab="tab-overview">
+            <i class="ri-dashboard-line"></i> Balances Overview
+          </button>
+          <button class="tab-btn" data-tab="tab-visual-graph">
+            <i class="ri-git-merge-line"></i> Interactive Debt Matrix Graph
+          </button>
+          <button class="tab-btn" data-tab="tab-expenses">
+            <i class="ri-bill-line"></i> Expense Log
+          </button>
+          <button class="tab-btn" data-tab="tab-settlements">
+            <i class="ri-history-line"></i> Settlement Log
+          </button>
+        </div>
+
+        <!-- TAB 1: Balances Overview & Simplified Debts -->
+        <section class="tab-content active" id="tab-overview">
+          <div class="overview-layout">
+            <!-- Net Balances List -->
+            <div class="glass-card panel-block">
+              <div class="panel-header">
+                <h3><i class="ri-wallet-3-line"></i> Member Balances</h3>
+                <span class="hint-text">Calculated from total paid vs total share</span>
+              </div>
+              <div class="balances-list" id="balances-list-container">
+                <!-- Member balance rows -->
+              </div>
+            </div>
+
+            <!-- Simplified Debt Settlements -->
+            <div class="glass-card panel-block">
+              <div class="panel-header">
+                <h3><i class="ri-node-tree"></i> Min-Cash-Flow Debt Simplification</h3>
+                <span class="hint-text">Minimum direct payments needed to settle all debts</span>
+              </div>
+              <div class="debt-transfers-list" id="debt-transfers-container">
+                <!-- Simplified transfers rows -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: Interactive Debt Matrix SVG Canvas -->
+        <section class="tab-content" id="tab-visual-graph">
+          <div class="glass-card graph-card">
+            <div class="panel-header flex-between">
+              <div>
+                <h3><i class="ri-node-tree"></i> Live Member Debt Directed Vector Map</h3>
+                <p class="subtext">Visual representation of who owes whom in the active group</p>
+              </div>
+              <div class="graph-legend">
+                <span class="legend-item"><span class="color-dot creditor"></span> Creditor (+ Balance)</span>
+                <span class="legend-item"><span class="color-dot debtor"></span> Debtor (- Balance)</span>
+                <span class="legend-item"><span class="color-dot settled"></span> Settled ($0)</span>
+              </div>
+            </div>
+            
+            <div class="graph-canvas-container">
+              <svg id="debt-vector-svg" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#8B5CF6" />
+                  </marker>
+                  <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="4" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                  </filter>
+                </defs>
+                <g id="svg-connections"></g>
+                <g id="svg-nodes"></g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: Expense History Feed -->
+        <section class="tab-content" id="tab-expenses">
+          <div class="glass-card panel-block">
+            <div class="panel-header flex-between">
+              <h3><i class="ri-receipt-line"></i> Group Expenses</h3>
+              <button class="btn btn-sm btn-primary" id="btn-tab-add-expense">
+                <i class="ri-add-line"></i> Add New Expense
+              </button>
+            </div>
+            <div class="expenses-feed" id="expenses-feed-container">
+              <!-- Expense items -->
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 4: Settlement History Log -->
+        <section class="tab-content" id="tab-settlements">
+          <div class="glass-card panel-block">
+            <div class="panel-header">
+              <h3><i class="ri-checkbox-circle-line"></i> Recorded Settlements</h3>
+            </div>
+            <div class="settlements-feed" id="settlements-feed-container">
+              <!-- Settlement items -->
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Blank State View -->
+      <div class="empty-state glass-card" id="empty-state-view">
+        <div class="empty-illustration">
+          <i class="ri-bubble-chart-line"></i>
+        </div>
+        <h2>Welcome to SplitCyber</h2>
+        <p>Select a group from the sidebar or create a new group to start tracking shared expenses.</p>
+        <button class="btn btn-primary glow-button mt-4" id="btn-welcome-create-group">
+          <i class="ri-add-line"></i> Create First Group
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL 1: Create Group Modal -->
+  <div class="modal-backdrop" id="modal-create-group">
+    <div class="modal-window glass-panel">
+      <div class="modal-header">
+        <h3><i class="ri-group-line"></i> Create New Group</h3>
+        <button class="close-btn" data-close="modal-create-group">&times;</button>
+      </div>
+      <form id="form-create-group">
+        <div class="form-group">
+          <label>Group Name</label>
+          <input type="text" id="input-group-name" placeholder="e.g. Summer Vacation Villa" required>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="input-group-category">
+            <option value="Trip">✈️ Trip & Travel</option>
+            <option value="Home">🏠 Home & Apartment</option>
+            <option value="Event">🎉 Event & Party</option>
+            <option value="Project">💻 Project / Work</option>
+            <option value="General" selected>💼 General</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <input type="text" id="input-group-desc" placeholder="Brief note about this group">
+        </div>
+        <div class="form-group">
+          <label>Include Members</label>
+          <div class="checkbox-list" id="create-group-user-checkboxes">
+            <!-- Dynamic checkboxes for existing users -->
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-create-group">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Group</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Create User Modal -->
+  <div class="modal-backdrop" id="modal-create-user">
+    <div class="modal-window glass-panel">
+      <div class="modal-header">
+        <h3><i class="ri-user-add-line"></i> Register User</h3>
+        <button class="close-btn" data-close="modal-create-user">&times;</button>
+      </div>
+      <form id="form-create-user">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="input-user-name" placeholder="e.g. Alice Vance" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="input-user-email" placeholder="alice@example.com" required>
+        </div>
+        <div class="form-group">
+          <label>Avatar Accent Color</label>
+          <div class="color-picker-grid">
+            <label class="color-chip"><input type="radio" name="user-color" value="#8B5CF6" checked><span style="background:#8B5CF6"></span></label>
+            <label class="color-chip"><input type="radio" name="user-color" value="#06B6D4"><span style="background:#06B6D4"></span></label>
+            <label class="color-chip"><input type="radio" name="user-color" value="#10B981"><span style="background:#10B981"></span></label>
+            <label class="color-chip"><input type="radio" name="user-color" value="#F43F5E"><span style="background:#F43F5E"></span></label>
+            <label class="color-chip"><input type="radio" name="user-color" value="#F59E0B"><span style="background:#F59E0B"></span></label>
+            <label class="color-chip"><input type="radio" name="user-color" value="#EC4899"><span style="background:#EC4899"></span></label>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-create-user">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Add Member to Group Modal -->
+  <div class="modal-backdrop" id="modal-add-member">
+    <div class="modal-window glass-panel">
+      <div class="modal-header">
+        <h3><i class="ri-user-shared-line"></i> Add Member to Group</h3>
+        <button class="close-btn" data-close="modal-add-member">&times;</button>
+      </div>
+
+      <!-- Add Existing Registered User Form -->
+      <form id="form-add-member">
+        <div class="form-group" id="group-select-existing-user">
+          <label>Select Existing Registered User</label>
+          <select id="select-add-member-user"></select>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-submit-add-existing" style="width:100%; margin-bottom:1rem">
+          <i class="ri-user-add-line"></i> Add Selected Registered User
+        </button>
+      </form>
+
+      <div style="text-align: center; font-size: 0.78rem; color: var(--text-muted); margin: 0.25rem 0 0.75rem 0;">— OR CREATE & ADD NEW MEMBER —</div>
+
+      <!-- Quick Create & Add New User Form -->
+      <form id="form-quick-create-add-member">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" id="input-quick-user-name" placeholder="e.g. Elena Rostova" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="input-quick-user-email" placeholder="elena@example.com" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-add-member">Cancel</button>
+          <button type="submit" class="btn btn-primary glow-button"><i class="ri-user-add-line"></i> Create & Add Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Add Expense Modal -->
+  <div class="modal-backdrop" id="modal-add-expense">
+    <div class="modal-window glass-panel modal-lg">
+      <div class="modal-header">
+        <h3><i class="ri-receipt-line"></i> Add Group Expense</h3>
+        <button class="close-btn" data-close="modal-add-expense">&times;</button>
+      </div>
+      <form id="form-add-expense">
+        <div class="form-row">
+          <div class="form-group flex-2">
+            <label>Expense Description</label>
+            <input type="text" id="input-expense-title" placeholder="e.g. Dinner & Drinks" required>
+          </div>
+          <div class="form-group flex-1">
+            <label>Total Amount ($)</label>
+            <input type="number" step="0.01" min="0.01" id="input-expense-amount" placeholder="0.00" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label>Paid By</label>
+            <select id="select-expense-payer" required>
+              <!-- Group members -->
+            </select>
+          </div>
+          <div class="form-group flex-1">
+            <label>Category</label>
+            <select id="select-expense-category">
+              <option value="Dining">🍷 Dining & Food</option>
+              <option value="Transport">🚗 Transport / Uber</option>
+              <option value="Housing">🏨 Rent / Stay</option>
+              <option value="Entertainment">🎟️ Entertainment</option>
+              <option value="General" selected>🛍️ General / Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Split Mode Selector -->
+        <div class="form-group">
+          <label>Split Type</label>
+          <div class="split-type-toggle">
+            <button type="button" class="split-toggle-btn active" data-split-type="EQUAL">
+              <i class="ri-equal-line"></i> Equally
+            </button>
+            <button type="button" class="split-toggle-btn" data-split-type="EXACT">
+              <i class="ri-price-tag-3-line"></i> Exact Amounts
+            </button>
+            <button type="button" class="split-toggle-btn" data-split-type="PERCENTAGE">
+              <i class="ri-percent-line"></i> By Percentage
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Member Split Allocator -->
+        <div class="form-group">
+          <div class="flex-between mb-2">
+            <label>Split Details</label>
+            <span id="split-validation-badge" class="badge badge-success">Split 100% Valid</span>
+          </div>
+          <div class="splits-matrix" id="splits-matrix-container">
+            <!-- Dynamic member split rows -->
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-add-expense">Cancel</button>
+          <button type="submit" class="btn btn-primary glow-button">Record Expense</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: Settle Up Modal -->
+  <div class="modal-backdrop" id="modal-settle-up">
+    <div class="modal-window glass-panel">
+      <div class="modal-header">
+        <h3><i class="ri-exchange-dollar-line"></i> Record Debt Settlement</h3>
+        <button class="close-btn" data-close="modal-settle-up">&times;</button>
+      </div>
+      <form id="form-settle-up">
+        <div class="form-group">
+          <label>Payer (Who is paying)</label>
+          <select id="select-settle-payer" required></select>
+        </div>
+        <div class="form-group">
+          <label>Payee (Who receives payment)</label>
+          <select id="select-settle-payee" required></select>
+        </div>
+        <div class="form-group">
+          <label>Settlement Amount ($)</label>
+          <input type="number" step="0.01" min="0.01" id="input-settle-amount" required>
+        </div>
+        <div class="form-group">
+          <label>Notes / Payment Ref</label>
+          <input type="text" id="input-settle-notes" placeholder="e.g. Sent via Venmo / Cash">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" data-close="modal-settle-up">Cancel</button>
+          <button type="submit" class="btn btn-primary glow-button">Confirm Settlement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Main JavaScript App -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
